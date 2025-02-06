@@ -83,6 +83,13 @@ const listarUno = async (req, res) => {
     // Capturar el ID desde la URL
     let id = req.params.id;
 
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        status: "error",
+        mensaje: "El ID proporcionado no es válido",
+      });
+    }
+
     // Verificar si el ID está presente
     if (!id) {
       return res.status(400).json({
