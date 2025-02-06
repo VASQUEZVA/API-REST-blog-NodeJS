@@ -54,7 +54,8 @@ const crear = async (req, res) => {
 const consultar = async (req, res) => {
   try {
     // Buscar todos los artículos
-    const articles = await Article.find({});
+    const articles = await Article.find({})
+                                  .sort({fecha: -1});
 
     // Verificar si hay artículos
     if (!articles.length) {
@@ -67,7 +68,7 @@ const consultar = async (req, res) => {
     // Devolver los artículos encontrados
     return res.status(200).json({
       status: "success",
-      articles, // Mejor devolver un array, no un objeto individual
+      articles, //  devolver  array, 
     });
   } catch (error) {
     return res.status(500).json({
@@ -77,9 +78,49 @@ const consultar = async (req, res) => {
   }
 };
 
+const listarUno = async (req, res) => {
+  try {
+    // Capturar el ID desde la URL
+    let id = req.params.id;
+
+    // Verificar si el ID está presente
+    if (!id) {
+      return res.status(400).json({
+        status: "error",
+        mensaje: "Falta el ID del artículo",
+      });
+    }
+
+    // Buscar el artículo por ID
+    const article = await Article.findById(id);
+
+    // Verificar si el artículo existe
+    if (!article) {
+      return res.status(404).json({
+        status: "error",
+        mensaje: "Artículo no encontrado",
+      });
+    }
+
+    // Devolver resultado
+    return res.status(200).json({
+      status: "success",
+      article,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      mensaje: "Error al buscar el artículo",
+    });
+  }
+};
+
+
 module.exports = {
   prueba,
   curso,
   crear,
   consultar,
+  listarUno,
 };
