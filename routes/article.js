@@ -13,5 +13,6 @@ router.get("/curso", ArticleController.curso);
 router.post("/crear", ArticleController.crear);
 router.get("/consultar", ArticleController.consultar);
 router.get("/consultar/:id", ArticleController.listarUno);
+router.delete("/consultar/:id", ArticleController.borrar);
 
 module.exports = router;

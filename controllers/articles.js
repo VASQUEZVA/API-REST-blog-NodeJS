@@ -124,10 +124,56 @@ const listarUno = async (req, res) => {
 };
 
 
+//const borrar = (req, res) => {
+  
+ // return res.status(200).json({
+  //  status: "success",
+  //  mensaje: "Artículo borrado con éxito",
+//  });
+//};
+
+const borrar = async (req, res) => {
+  try {
+    let id = req.params.id;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        status: "error",
+        mensaje: "El ID proporcionado no es válido",
+      });
+    }
+
+    const articleBorrado = await Article.findByIdAndDelete(id);
+
+    if (!articleBorrado) {
+      return res.status(404).json({
+        status: "error",
+        mensaje: "Artículo no encontrado",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      mensaje: "Artículo eliminado correctamente",
+      article: articleBorrado,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      mensaje: "Error al eliminar el artículo",
+    });
+  }
+};
+
+
+
+
 module.exports = {
   prueba,
   curso,
   crear,
   consultar,
   listarUno,
+  borrar,
 };
