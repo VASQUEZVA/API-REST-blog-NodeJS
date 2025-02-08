@@ -2,7 +2,6 @@ const Article = require("../models/Articles");
 const fs = require("fs");
 const { validarArticulo, validarId } = require("../helpers/validar");
 
-
 const crear = async (req, res) => {
   try {
     const parametros = req.body;
@@ -18,13 +17,11 @@ const crear = async (req, res) => {
     const article = new Article(parametros);
     const articleGuardado = await article.save();
 
-    return res
-      .status(200)
-      .json({
-        status: "success",
-        mensaje: "Artículo creado con éxito",
-        article: articleGuardado,
-      });
+    return res.status(200).json({
+      status: "success",
+      mensaje: "Artículo creado con éxito",
+      article: articleGuardado,
+    });
   } catch (error) {
     return res
       .status(500)
@@ -89,13 +86,11 @@ const borrar = async (req, res) => {
         .status(404)
         .json({ status: "error", mensaje: "Artículo no encontrado" });
 
-    return res
-      .status(200)
-      .json({
-        status: "success",
-        mensaje: "Artículo eliminado correctamente",
-        article: articleBorrado,
-      });
+    return res.status(200).json({
+      status: "success",
+      mensaje: "Artículo eliminado correctamente",
+      article: articleBorrado,
+    });
   } catch (error) {
     return res
       .status(500)
@@ -123,71 +118,149 @@ const editar = async (req, res) => {
     );
 
     if (!articleActualizado)
-      return res
-        .status(404)
-        .json({
-          status: "error",
-          mensaje: "No se ha encontrado el artículo para actualizar",
-        });
-
-    return res
-      .status(200)
-      .json({
-        status: "success",
-        mensaje: "Artículo actualizado con éxito",
-        article: articleActualizado,
-      });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({
+      return res.status(404).json({
         status: "error",
-        mensaje: "No se ha podido actualizar el artículo",
+        mensaje: "No se ha encontrado el artículo para actualizar",
       });
+
+    return res.status(200).json({
+      status: "success",
+      mensaje: "Artículo actualizado con éxito",
+      article: articleActualizado,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      mensaje: "No se ha podido actualizar el artículo",
+    });
   }
 };
 
-const subir = (req, res) => {
-
+/*const subir = async (req, res) => {
 
   // Cpaturar el fichero de imagen subido
-  if(!req.file && !req.file){
+
+  if (!req.file && !req.file) {
     return res.status(404).json({
       status: "error",
       mensaje: "Petision invalida",
     });
-
   }
 
   // Nombre del archivo
-    let nombreArchivo = req.file.originalname;
+  let nombreArchivo = req.file.originalname;
 
   // Extension del archivo
-  let archivo_split = nombreArchivo.split("\.");
+  let archivo_split = nombreArchivo.split(".");
   let extension = archivo_split[1];
 
   // comprobar extension correcta
-  if (extension !== "png" && extension !== "jpg" &&
-     extension !== "jpeg" && extension !== "gif") {
+  if (
+    extension !== "png" &&
+    extension !== "jpg" &&
+    extension !== "jpeg" &&
+    extension !== "gif"
+  ) {
+    // borrar archivo  y dar rspuesta
 
-      // borrar archivo  y dar rspuesta
-      
-      fs.unlink(req.file.path, (error) => {
+    fs.unlink(req.file.path, (error) => {
+      return res.status(400).json({
+        status: "error",
+        mensaje: "Extensión del imagen inválida",
+      });
+    });
+  } else {
+    // Capturar el id del articulo actualizar
+
+   try{ let id = req.params.id;
+
+    let articleActualizado = await Article.findOneAndUpdate(
+      { _id: id },
+      { imagen: req.file.filename },
+      { new: true }
+    );
+
+    if (!articleActualizado) {
+      return res.status(404).json({
+        status: "error",
+        mensaje: "No se encontró el artículo",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      articleActualizado,
+      file: req.file,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      mensaje: "Error en la actualización",
+      error: error.message,
+    });
+  }
+}}; */
+
+
+const subir = async (req, res) => {
+    // Capturar el fichero de imagen subido
+    if (!req.file) {
         return res.status(400).json({
-          status: "error",
-          mensaje: "Extensión del imagen inválida",
+            status: "error",
+            mensaje: "Petición inválida, no se subió ningún archivo",
         });
-      });
+    }
 
-     }else{
+    // Obtener nombre y extensión del archivo
+    let nombreArchivo = req.file.originalname;
+    let extension = nombreArchivo.split(".").pop().toLowerCase();
 
-      return res.status(200).json({
-        status: "success",
-        archivo_split,
-        file: req.file
-      });
-     }
+    // Comprobar si la extensión es válida
+    const extensionesValidas = ["png", "jpg", "jpeg", "gif"];
+    if (!extensionesValidas.includes(extension)) {
+        // Borrar archivo y responder con error
+        fs.unlink(req.file.path, (error) => {
+            return res.status(400).json({
+                status: "error",
+                mensaje: "Extensión de imagen inválida",
+            });
+        });
+        return; // Evita que el código continúe ejecutándose
+    }
+
+    try {
+        // Capturar el ID del artículo a actualizar
+        let id = req.params.id;
+
+        let articleActualizado = await Article.findOneAndUpdate(
+            { _id: id },
+            { imagen: req.file.filename },
+            { new: true }
+        );
+
+        if (!articleActualizado) {
+            return res.status(404).json({
+                status: "error",
+                mensaje: "No se encontró el artículo",
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            articleActualizado,
+            file: req.file,
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "error",
+            mensaje: "Error en la actualización",
+            error: error.message,
+        });
+    }
 };
+
 
 module.exports = {
   crear,
