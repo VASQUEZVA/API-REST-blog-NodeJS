@@ -27,5 +27,6 @@ router.delete("/consultar/:id", ArticleController.borrar);
 router.put("/consultar/:id", ArticleController.editar);
 router.post("/subir-imagen/:id", [subidos.single("file0")], ArticleController.subir)
 router.get("/imagen/:fichero", ArticleController.imagen);
+router.get("/buscar/:busqueda", ArticleController.buscador)
 
 module.exports = router;

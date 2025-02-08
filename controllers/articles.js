@@ -154,7 +154,7 @@ const subir = async (req, res) => {
   const extensionesValidas = ["png", "jpg", "jpeg", "gif"];
   if (!extensionesValidas.includes(extension)) {
     // Borrar archivo y responder con error
-    
+
     fs.unlink(req.file.path, (error) => {
       return res.status(400).json({
         status: "error",
@@ -196,19 +196,14 @@ const subir = async (req, res) => {
 };
 
 const imagen = (req, res) => {
-
   let fichero = req.params.fichero;
 
   let ruta_fisica = "./imagenes/articulos/" + fichero;
 
   fs.stat(ruta_fisica, (error, existe) => {
-
     if (existe) {
-
       return res.sendFile(path.resolve(ruta_fisica));
-
     } else {
-
       return res.status(404).json({
         status: "error",
         mensaje: "la imagen no existe",
@@ -220,6 +215,43 @@ const imagen = (req, res) => {
   });
 };
 
+const buscador = async (req, res) => {
+  try {
+    // Capturar el string de la búsqueda
+    let busqueda = req.params.busqueda;
+
+    // Buscar artículos en la base de datos
+    let articulosEncontrados = await Article.find({
+      $or: [
+        { titulo: { $regex: busqueda, $options: "i" } },
+        { contenido: { $regex: busqueda, $options: "i" } },
+      ],
+    }).sort({ fecha: -1 }).exec();
+
+    // Validar si se encontraron artículos
+    if (!articulosEncontrados || articulosEncontrados.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        mensaje: "No se ha encontrado artículos",
+      });
+    }
+
+    // Responder con los artículos encontrados
+    return res.status(200).json({
+      status: "success",
+      articulos: articulosEncontrados
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      mensaje: "Error en la búsqueda",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   crear,
   consultar,
@@ -228,4 +260,5 @@ module.exports = {
   editar,
   subir,
   imagen,
+  buscador,
 };
